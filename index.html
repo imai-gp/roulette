@@ -83,7 +83,7 @@
             padding: 15px 30px;
             border: none;
             border-radius: 40px;
-            font-size: 2.0em;
+            font-size: 1.6em;
             font-weight:700;
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
@@ -237,7 +237,7 @@
             themeDrawButton.style.display = showThemeButton ? 'inline-block' : 'none';
             // 抽選後は「抽選する」ボタンのラベルを「全員再抽選する」に変更
             if (showThemeButton) {
-                drawButton.textContent = "やりなおす";
+                drawButton.textContent = "再抽選";
             } else {
                 drawButton.textContent = "担当・テーマを選ぶ"; // 初期状態に戻す
             }
@@ -259,14 +259,14 @@
 
                 if (isThemeOnly) {
                     resultDiv.innerHTML = `
-                        <p>今日の発表担当者は：<br><span class="highlight">${currentPresenter}</span></p>
-                        <p>今日のテーマは：<br><span class="roulette-item">${randomTheme}</span></p>
+                        <p><span class="title">今日の発表担当者は</span><br><span class="highlight">${currentPresenter}</span></p>
+                        <p><span class="title">今日のテーマは</span><br><span class="roulette-item">${randomTheme}</span></p>
                     `;
                 } else {
                     const randomPresenter = presenters[Math.floor(Math.random() * presenters.length)];
                     resultDiv.innerHTML = `
-                        <p>発表担当者は：<br><span class="roulette-item">${randomPresenter}</span></p>
-                        <p>今日のテーマは：<br><span class="roulette-item">${randomTheme}</span></p>
+                        <p><span class="title">発表担当者は</span><br><span class="roulette-item">${randomPresenter}</span></p>
+                        <p><span class="title">今日のテーマは</span><br><span class="roulette-item">${randomTheme}</span></p>
                     `;
                 }
                 
@@ -292,8 +292,8 @@
             resultDiv.style.opacity = '0';
             setTimeout(() => {
                 resultDiv.innerHTML = `
-                    <p>今日の発表担当者は：<span class="highlight">${finalPresenter}</span></p>
-                    <p>今日のテーマは：<span class="highlight">${finalTheme}</span></p>
+                    <p><span class="title">今日の発表担当者は</span><span class="highlight">${finalPresenter}</span></p>
+                    <p><span class="title">今日のテーマは</span><span class="highlight">${finalTheme}</span></p>
                 `;
                 resultDiv.style.opacity = '1';
                 enableAllButtons();
