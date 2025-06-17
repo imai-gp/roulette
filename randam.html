@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <title>発表会 担当者＆テーマ抽選</title>
+    <style>
+        body {
+            font-family: "Noto Sans JP", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px 50px;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 10;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        .result-box {
+            background-color: #e8f5e9;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            padding: 25px 20px;
+            margin-top: 30px;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.5s ease-in-out;
+        }
+        p {
+            font-size: 1.2em;
+            color: #333;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        span.highlight {
+            color: #00796b;
+            font-size: 1.4em;
+            display: block;
+            margin-top: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .button-group {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            width:360px;
+            height:80px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 40px;
+            font-size: 2.0em;
+            font-weight:700;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+        button#themeDrawButton {
+            background-color: #f39c12;
+        }
+        button#themeDrawButton:hover {
+            background-color: #e67e22;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .note {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* 演出用のスタイル */
+        .countdown {
+            font-size: 4em;
+            font-weight: bold;
+            color: #e67e22;
+            animation: bounceIn 0.8s ease-out;
+        }
+        .roulette-item {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2980b9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            margin: 5px auto;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.1);
+                opacity: 0;
+            }
+            60% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* 花吹雪のスタイル */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f;
+            border-radius: 50%;
+            opacity: 0;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotateZ(0deg) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotateZ(720deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>発表担当者＆テーマ抽選</h1>
+        <div class="button-group">
+            <button id="drawButton" onclick="startDrawEffect(false)">担当・テーマを選ぶ</button> <button id="themeDrawButton" onclick="startDrawEffect(true)" style="display: none;">テーマだけ再抽選</button>
+        </div>
+        
+        <div id="result" class="result-box">
+            <p>ボタンを押して、今日の発表者とテーマを決めましょう！</p>
+        </div>
+    </div>
+    <div id="confetti-container" class="confetti-container"></div>
+
+    <script>
+        const presenters = [
+            "今井", "塩崎", "寺島", "辰巳", "衣川", "川原", "ステフ", "田中"
+        ];
+
+        const themes = [
+            "今つくってる制作物のラフ・途中経過共有",
+            "最近ボツになったけど自分的には気に入ってる案",
+            "意図や思考の流れを聞いてほしいUIの一部",
+            "制作時に迷ったところ or 相談したかったこと",
+            "最近良かったサイト／UI／広告／ポスターなど",
+            "最近見つけたフォント or タイポグラフィの使い方",
+            "気になるトレンド or 他業界のデザイン事例",
+            "デザイン以外で創作意欲が刺激されたもの",
+            "ChatGPTなどAIを使ったプロンプトの共有",
+            "より良くなった自分なりのデザインプロセス",
+            "デザインの判断に悩んだ瞬間",
+            "昔作った作品の振り返り（黒歴史共有もアリ）",
+            "チームでやってみたいこと"
+        ];
+
+        let rouletteInterval;
+        const resultDiv = document.getElementById('result');
+        const drawButton = document.getElementById('drawButton');
+        const themeDrawButton = document.getElementById('themeDrawButton');
+        const confettiContainer = document.getElementById('confetti-container');
+
+        let currentPresenter = "";
+
+        function disableAllButtons() {
+            drawButton.disabled = true;
+            themeDrawButton.disabled = true;
+        }
+
+        function enableAllButtons() {
+            drawButton.disabled = false;
+            themeDrawButton.disabled = false;
+        }
+
+        function updateButtonVisibility(showThemeButton) {
+            themeDrawButton.style.display = showThemeButton ? 'inline-block' : 'none';
+            // 抽選後は「抽選する」ボタンのラベルを「全員再抽選する」に変更
+            if (showThemeButton) {
+                drawButton.textContent = "やりなおす";
+            } else {
+                drawButton.textContent = "担当・テーマを選ぶ"; // 初期状態に戻す
+            }
+        }
+
+        function startDrawEffect(isThemeOnly) {
+            disableAllButtons();
+            resultDiv.innerHTML = '';
+            startRoulette(isThemeOnly);
+        }
+
+        function startRoulette(isThemeOnly) {
+            let rouletteCount = 0;
+            const maxRouletteTime = 3000;
+            const intervalSpeed = 100;
+
+            rouletteInterval = setInterval(() => {
+                const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+
+                if (isThemeOnly) {
+                    resultDiv.innerHTML = `
+                        <p>今日の発表担当者は：<br><span class="highlight">${currentPresenter}</span></p>
+                        <p>今日のテーマは：<br><span class="roulette-item">${randomTheme}</span></p>
+                    `;
+                } else {
+                    const randomPresenter = presenters[Math.floor(Math.random() * presenters.length)];
+                    resultDiv.innerHTML = `
+                        <p>発表担当者は：<br><span class="roulette-item">${randomPresenter}</span></p>
+                        <p>今日のテーマは：<br><span class="roulette-item">${randomTheme}</span></p>
+                    `;
+                }
+                
+                rouletteCount += intervalSpeed;
+                if (rouletteCount >= maxRouletteTime) {
+                    clearInterval(rouletteInterval);
+                    revealResult(isThemeOnly);
+                }
+            }, intervalSpeed);
+        }
+
+        function revealResult(isThemeOnly) {
+            let finalPresenter;
+            if (isThemeOnly) {
+                finalPresenter = currentPresenter;
+            } else {
+                finalPresenter = presenters[Math.floor(Math.random() * presenters.length)];
+                currentPresenter = finalPresenter;
+            }
+            
+            const finalTheme = themes[Math.floor(Math.random() * themes.length)];
+
+            resultDiv.style.opacity = '0';
+            setTimeout(() => {
+                resultDiv.innerHTML = `
+                    <p>今日の発表担当者は：<span class="highlight">${finalPresenter}</span></p>
+                    <p>今日のテーマは：<span class="highlight">${finalTheme}</span></p>
+                `;
+                resultDiv.style.opacity = '1';
+                enableAllButtons();
+                updateButtonVisibility(true); // 抽選後はテーマ抽選ボタンを表示＆「抽選する」を「全員再抽選する」に変更
+
+                createConfetti(50);
+            }, 300);
+        }
+
+        function createConfetti(num) {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#800080'];
+            confettiContainer.innerHTML = '';
+
+            for (let i = 0; i < num; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = -Math.random() * 20 + 'vh';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                confetti.style.animationDuration = (3 + Math.random() * 2) + 's';
+                confetti.style.transform = `scale(${0.5 + Math.random() * 0.5})`;
+                confettiContainer.appendChild(confetti);
+
+                confetti.addEventListener('animationend', () => {
+                    confetti.remove();
+                });
+            }
+        }
+
+        // 初期表示時にボタンの状態を設定
+        document.addEventListener('DOMContentLoaded', () => {
+            updateButtonVisibility(false); // テーマ抽選ボタンは非表示、メインボタンは「抽選する」
+        });
+    </script>
+</body>
+</html>
