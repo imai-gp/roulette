@@ -5,340 +5,647 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <title>発表会 担当者＆テーマ抽選</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <title>TALK SPIN!</title>
     <style>
-        body {
-            font-family: "Noto Sans JP", sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: #f4f7f6;
-            color: #333;
-            line-height: 1.6;
-            padding: 20px;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-        .container {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-            padding: 40px 50px;
-            text-align: center;
-            width: 100%;
-            max-width: 800px;
-            box-sizing: border-box;
-            position: relative;
-            z-index: 10;
-        }
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-size: 2em;
-        }
-        .result-box {
-            background-color: #e8f5e9;
-            border: 2px solid #4CAF50;
-            border-radius: 8px;
-            padding: 25px 20px;
-            margin-top: 30px;
-            min-height: 250px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.5s ease-in-out;
-        }
-        p {
-            font-size: 1.2em;
-            color: #333;
-            margin: 10px 0;
-            font-weight: bold;
-        }
-        span.highlight {
-            color: #00796b;
-            font-size: 1.4em;
-            display: block;
-            margin-top: 8px;
-            overflow-wrap: break-word;
-            word-break: break-all;
-            overflow: hidden;
-            max-width: 100%;
-        }
-        .button-group {
-            margin-top: 40px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        button {
-            width:360px;
-            height:80px;
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 40px;
-            font-size: 1.6em;
-            font-weight:700;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            white-space: nowrap;
-        }
-        button#themeDrawButton {
-            background-color: #f39c12;
-        }
-        button#themeDrawButton:hover {
-            background-color: #e67e22;
+        :root {
+            color-scheme: light;
+            --bg: #fafcff;
+            --navy: #09122b;
+            --muted: #798394;
+            --wheel-size: min(66vh, 92vw, 900px);
         }
 
-        button:hover {
-            background-color: #45a049;
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Noto Sans JP", sans-serif;
+            background: var(--bg);
+            color: var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 24px;
+        }
+
+        .stage {
+            width: calc(100vw - 160px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            container-type: inline-size;
+        }
+
+        /* ---- The single roulette wheel: peeks at the bottom while idle, ---- */
+        /* ---- then rises to the centre and spins — never swapped for another element ---- */
+        .wheel-float {
+            position: fixed;
+            left: 50%;
+            top: 100%;
+            width: var(--wheel-size);
+            aspect-ratio: 1;
+            transform: translate(-50%, -33.333%);
+            transition: top 0.85s cubic-bezier(.22, .61, .36, 1),
+                        transform 0.85s cubic-bezier(.22, .61, .36, 1),
+                        opacity 0.4s ease;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .wheel-float.center {
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .wheel-float.hidden {
+            opacity: 0;
+        }
+
+        /* ---- Idle: title / subtitle / start button ---- */
+        .intro {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3vw;
+            padding: 6px;
+            margin-bottom: 56px;
+            opacity: 1;
+            transform: translateY(-9vh);
+            transition: opacity 0.35s ease, transform 0.4s ease;
+        }
+
+        .intro.hidden {
+            opacity: 0;
+            transform: translateY(calc(-9vh - 24px));
+            pointer-events: none;
+        }
+
+        .intro.collapsed {
+            display: none;
+        }
+
+        .logo {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            font-weight: 700;
+            font-size: clamp(2rem, 16cqw, 20rem);
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--muted);
+            font-weight: 700;
+            font-size: clamp(0.85rem, 2.6cqw, 2rem);
+        }
+
+        .btn-primary {
+            min-width: 20cqw;
+            max-width: 34cqw;
+            padding: 1.8cqw 3.2cqw;
+            border: none;
+            border-radius: 999px;
+            background: var(--navy);
+            color: var(--bg);
+            font-weight: 700;
+            font-size: clamp(0.9rem, 2.6cqw, 6rem);
+            cursor: pointer;
+            transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
+            filter: brightness(1.25);
         }
-        button:active {
-            transform: translateY(0);
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0) scale(0.97);
         }
-        button:disabled {
-            background-color: #cccccc;
+
+        .btn-primary:disabled {
+            opacity: 0.45;
             cursor: not-allowed;
         }
-        .note {
-            margin-top: 30px;
-            font-size: 0.9em;
-            color: #666;
+
+        .scene {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* 演出用のスタイル */
-        .countdown {
-            font-size: 4em;
-            font-weight: bold;
-            color: #e67e22;
-            animation: bounceIn 0.8s ease-out;
-        }
-        .roulette-item {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #2980b9;
-            overflow-wrap: break-word;
-            word-break: break-all;
-            overflow: hidden;
-            max-width: 100%;
-            margin: 5px auto;
-        }
-
-        @keyframes bounceIn {
-            0% {
-                transform: scale(0.1);
-                opacity: 0;
-            }
-            60% {
-                transform: scale(1.2);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        /* 花吹雪のスタイル */
-        .confetti-container {
-            position: fixed;
-            top: 0;
-            left: 0;
+        /* ---- Wheel ---- */
+        .wheel-wrap {
+            position: relative;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-        }
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #f0f;
-            border-radius: 50%;
-            opacity: 0;
-            animation: confetti-fall 3s ease-out forwards;
+            container-type: inline-size;
         }
 
-        @keyframes confetti-fall {
-            0% {
-                transform: translateY(0) rotateZ(0deg) scale(1);
-                opacity: 0;
+        .wheel {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 14px solid var(--navy);
+            overflow: hidden;
+            transform: rotate(0deg);
+        }
+
+        .wheel-separator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50%;
+            height: 2px;
+            background: rgba(9, 18, 43, 0.45);
+            transform-origin: 0 50%;
+        }
+
+        .wheel-label-wrap {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50%;
+            height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            transform-origin: 0 0;
+        }
+
+        .wheel-label {
+            display: inline-block;
+            margin-right: 8%;
+            font-family: "Poppins", sans-serif;
+            font-weight: 700;
+            color: var(--navy);
+            white-space: nowrap;
+            transition: opacity 0.18s ease;
+        }
+
+        .wheel-label.landed {
+            animation: segmentBlink 0.32s ease-in-out 3;
+        }
+
+        .pin {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            width: 0;
+            height: 0;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .pin.bounce {
+            animation: pinBounce 0.22s ease-out;
+        }
+
+        .pin-shape {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 28px;
+            height: 28px;
+            margin-left: -14px;
+            background: var(--navy);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            transform-origin: center;
+        }
+
+        .hub {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 26%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: var(--navy);
+            color: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-family: "Poppins", sans-serif;
+            font-weight: 700;
+            font-size: clamp(0.8rem, 7cqw, 1.4rem);
+            line-height: 1.15;
+            z-index: 1;
+        }
+
+        /* ---- Result ---- */
+        .result-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 5vw;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            transition: opacity 0.45s ease, transform 0.45s ease;
+        }
+
+        .result-area.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .result-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            transition: opacity 0.22s ease;
+        }
+
+        .result-text.swapping {
+            opacity: 0;
+        }
+
+        .result-name {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            font-size: clamp(2rem, 11cqw, 20rem);
+            line-height: 1.05;
+            word-break: break-word;
+        }
+
+        .result-theme {
+            margin: 0;
+            font-weight: 700;
+            font-size: clamp(0.85rem, 2.6cqw, 3rem);
+            color: var(--navy);
+        }
+
+        .result-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.6cqw;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @keyframes pinBounce {
+            0% { transform: translateX(-50%) translateY(0); }
+            35% { transform: translateX(-50%) translateY(-12px); }
+            100% { transform: translateX(-50%) translateY(0); }
+        }
+
+        @keyframes segmentBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        .confetti-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .confetti {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            opacity: 0;
+            filter: drop-shadow(0 0 8px rgba(9, 18, 43, 0.25));
+            animation: confetti-burst cubic-bezier(.18, .7, .3, 1) forwards;
+        }
+
+        @keyframes confetti-burst {
+            0% { transform: translate(-50%, -50%) translate(0, 0) rotate(0deg) scale(0.4); opacity: 0; }
+            12% { opacity: 1; }
+            100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(var(--scale)); opacity: 0; }
+        }
+
+        @media (max-width: 560px) {
+            .btn-primary {
+                width: 100%;
+                min-width: unset;
+                max-width: unset;
             }
-            10% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotateZ(720deg) scale(0.5);
-                opacity: 0;
+
+            .result-buttons {
+                flex-direction: column;
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>発表担当者＆テーマ抽選</h1>
-        <div class="button-group">
-            <button id="drawButton" onclick="startDrawEffect(false)">担当・テーマを選ぶ</button> <button id="themeDrawButton" onclick="startDrawEffect(true)" style="display: none;">テーマだけ再抽選</button>
+    <div class="wheel-float" id="wheelFloat">
+        <div class="wheel-wrap">
+            <div class="pin" id="pin"><span class="pin-shape"></span></div>
+            <div class="wheel" id="wheel"></div>
+            <div class="hub"><span>SPIN TALK!</span></div>
         </div>
-        
-        <div id="result" class="result-box">
-            <p>ボタンを押して、今日の発表者とテーマを決めましょう！</p>
+    </div>
+    <div class="stage">
+        <div class="intro" id="intro">
+            <h1 class="logo">SPIN TALK!</h1>
+            <p class="subtitle">今日の発表者とトークテーマを決めよう！</p>
+            <button id="spinButton" class="btn-primary">ルーレットを回す</button>
+        </div>
+
+        <div class="scene">
+            <div class="result-area" id="resultArea">
+                <div class="result-text" id="resultText">
+                    <p class="result-name" id="resultName"></p>
+                    <p class="result-theme" id="resultTheme"></p>
+                </div>
+                <div class="result-buttons">
+                    <button id="redrawButton" class="btn-primary">再抽選</button>
+                    <button id="themeOnlyButton" class="btn-primary">テーマだけやり直す</button>
+                </div>
+                <p id="resultStatus" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+            </div>
         </div>
     </div>
     <div id="confetti-container" class="confetti-container"></div>
 
     <script>
         const presenters = [
-            "今井", "塩崎", "寺島", "辰巳", "衣川", "川原", "ステフ", "田中", "高田"
+            "IMAI", "SHIOZAKI", "TERAJIMA", "TATSUMI", "KINUGAWA", "KAWAHARA", "TANAKA", "TAKADA"
         ];
 
         const themes = [
-            "今つくってる制作物のラフ・途中経過共有",
-            "最近ボツになったけど自分的には気に入ってる案",
-            "意図や思考の流れを聞いてほしいUIの一部",
-            "制作時に迷ったところ or 相談したかったこと",
-            "最近良かったサイト／UI／広告／ポスターなど",
-            "最近見つけたフォント or タイポグラフィの使い方",
-            "気になるトレンド or 他業界のデザイン事例",
-            "デザイン以外で創作意欲が刺激されたもの",
-            "ChatGPTなどAIを使ったプロンプトの共有",
-            "より良くなった自分なりのデザインプロセス",
-            "デザインの判断に悩んだ瞬間",
-            "昔作った作品の振り返り",
-            "チームでやってみたいこと",
-            "スマホのホーム画面（アプリの配置、壁紙など）のこだわり",
-            "思わずジャケ買い（パケ買い）した商品と、その理由",
-            "昔の黒歴史デザインを振り返る会",
-            "仕事で使ったことないけど、密かにやってみたい表現スタイル",
-            "デザイン迷子になったときに見る・読むもの",
-            "最近気づいたデザインの癖",
-            "よく見る「このトレンド、そろそろ飽きた」デザイン",
-            "新人時代にあったらよかったと思うサポートや制度",
-            "「これ言われてうれしかった！」仕事のフィードバック",
-            "最近、他グループで「この人すごいな」と思った人は？",
-            "別グループの誰かがしていた“かゆいところに手が届く”対応",
-            "最近見かけたGoodなワイヤーフレーム"
+            "最近見かけた「このサイト良いな」と思った理由は？",
+            "自分のデザインの癖って何だと思う？",
+            "フォントを1つだけ一生使うなら何を選ぶ？",
+            "デザインしていて一番テンション上がる瞬間は？",
+            "「これ苦手なんだよな…」な制作物ある？",
+            "Webデザインで最近増えたなと思う表現は？",
+            "自分のデザインを3ワードで表すと？",
+            "レイアウトで困った時、最初に何する？",
+            "一番好きな余白感ってどんな感じ？",
+            "「これはセンスじゃなく技術だな」と思うことは？",
+            "制作で一番時間を溶かしがちな工程は？",
+            "今の仕事道具で一番手放せないものは？",
+            "「新人の頃に知りたかった…」と思うことは？",
+            "集中したい時のルーティンある？",
+            "レビューされる側・する側、どっちが疲れる？",
+            "もし1週間だけ別職種やるなら何やりたい？",
+            "締切直前に発揮される謎スキルある？",
+            "AIで一番助かってる作業って何？",
+            "AIに奪われそうより、増えそうと思う仕事は？",
+            "AI生成で「ここまだ人だな」と思う部分は？",
+            "AIツールを禁止されたら一番困るものは？",
+            "AIで作ったもの、どこまで自分の成果物だと思う？",
+            "「AI時代に伸ばしたい能力」って何？",
+            "デザイナーあるあるを1つ言うなら？",
+            "制作中のBGM、無音派？音楽派？環境音派？"
         ];
 
-        let rouletteInterval;
-        const resultDiv = document.getElementById('result');
-        const drawButton = document.getElementById('drawButton');
-        const themeDrawButton = document.getElementById('themeDrawButton');
+        const intro = document.getElementById('intro');
+        const wheelFloat = document.getElementById('wheelFloat');
+        const resultArea = document.getElementById('resultArea');
+        const wheel = document.getElementById('wheel');
+        const pin = document.getElementById('pin');
+        const spinButton = document.getElementById('spinButton');
+        const redrawButton = document.getElementById('redrawButton');
+        const themeOnlyButton = document.getElementById('themeOnlyButton');
+        const resultText = document.getElementById('resultText');
+        const resultName = document.getElementById('resultName');
+        const resultTheme = document.getElementById('resultTheme');
+        const resultStatus = document.getElementById('resultStatus');
         const confettiContainer = document.getElementById('confetti-container');
 
-        let currentPresenter = "";
+        const SEGMENT_ANGLE = 360 / presenters.length;
 
-        function disableAllButtons() {
-            drawButton.disabled = true;
-            themeDrawButton.disabled = true;
+        let currentRotation = 0;
+        let currentPresenter = '';
+        let currentTheme = '';
+        let isBusy = false;
+
+        function pickIndex(list) {
+            return Math.floor(Math.random() * list.length);
         }
 
-        function enableAllButtons() {
-            drawButton.disabled = false;
-            themeDrawButton.disabled = false;
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
         }
 
-        function updateButtonVisibility(showThemeButton) {
-            themeDrawButton.style.display = showThemeButton ? 'inline-block' : 'none';
-            // 抽選後は「抽選する」ボタンのラベルを「全員再抽選する」に変更
-            if (showThemeButton) {
-                drawButton.textContent = "再抽選";
-            } else {
-                drawButton.textContent = "担当・テーマを選ぶ"; // 初期状態に戻す
-            }
+        function setBusy(state) {
+            isBusy = state;
+            spinButton.disabled = state;
+            redrawButton.disabled = state;
+            themeOnlyButton.disabled = state;
+            document.body.setAttribute('aria-busy', state ? 'true' : 'false');
         }
 
-        function startDrawEffect(isThemeOnly) {
-            disableAllButtons();
-            resultDiv.innerHTML = '';
-            startRoulette(isThemeOnly);
+        // ホイールの実寸（コンテナクエリ単位 cqw）に連動させ、
+        // ビューポート基準だとホイールの最大幅キャップとサイズがズレて
+        // 文字がはみ出す事態を避ける。clampで読みやすさの上下限も確保する。
+        function labelFontSize(name) {
+            if (name.length <= 4) return 'clamp(13px, 5.6cqw, 64px)';
+            if (name.length <= 6) return 'clamp(11px, 4.6cqw, 54px)';
+            if (name.length <= 8) return 'clamp(10px, 3.8cqw, 44px)';
+            return 'clamp(9px, 3.2cqw, 38px)';
         }
 
-        function startRoulette(isThemeOnly) {
-            let rouletteCount = 0;
-            const maxRouletteTime = 3000;
-            const intervalSpeed = 100;
+        function buildWheel() {
+            wheel.innerHTML = '';
+            presenters.forEach((name, i) => {
+                const separator = document.createElement('div');
+                separator.className = 'wheel-separator';
+                separator.style.transform = `rotate(${i * SEGMENT_ANGLE}deg)`;
+                wheel.appendChild(separator);
 
-            rouletteInterval = setInterval(() => {
-                const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+                const labelWrap = document.createElement('div');
+                labelWrap.className = 'wheel-label-wrap';
+                labelWrap.style.transform = `rotate(${i * SEGMENT_ANGLE + SEGMENT_ANGLE / 2}deg)`;
 
-                if (isThemeOnly) {
-                    resultDiv.innerHTML = `
-                        <p><span class="title">今日の発表担当者は</span><br><span class="highlight">${currentPresenter}</span></p>
-                        <p><span class="title">今日のテーマは</span><br><span class="roulette-item">${randomTheme}</span></p>
-                    `;
+                const label = document.createElement('span');
+                label.className = 'wheel-label';
+                label.textContent = name;
+                label.dataset.index = String(i);
+                label.style.fontSize = labelFontSize(name);
+
+                labelWrap.appendChild(label);
+                wheel.appendChild(labelWrap);
+            });
+        }
+
+        function bouncePin() {
+            pin.classList.remove('bounce');
+            void pin.offsetWidth;
+            pin.classList.add('bounce');
+        }
+
+        // ピンは円の真上（絶対角度 -90°/270°）に固定されている。
+        // wheelをR度回転させたとき、ローカル角度Aの点は絶対角度 (A + R) に移動するので、
+        // ピン直下に来るローカル角度は (270 - R) mod 360。
+        // セグメントiはローカル角度 [i*SEGMENT_ANGLE, (i+1)*SEGMENT_ANGLE) を占めるため、
+        // 最終的な回転角から「実際にピンが指しているセグメント」を逆算できる。
+        function getIndexUnderPin(rotation) {
+            const localAngle = ((270 - rotation) % 360 + 360) % 360;
+            return Math.floor(localAngle / SEGMENT_ANGLE);
+        }
+
+        function spinWheel(onComplete) {
+            const extraSpins = 5 + Math.floor(Math.random() * 3); // 5〜7周
+            const randomOffset = Math.random() * 360;
+
+            const start = currentRotation;
+            const target = start + extraSpins * 360 + randomOffset;
+            const delta = target - start;
+            const duration = 5000; // 仕様: 5秒程度で結果が出る
+            const startTime = performance.now();
+            let lastBoundary = Math.floor(start / SEGMENT_ANGLE);
+
+            function frame(now) {
+                const elapsed = now - startTime;
+                const t = Math.min(1, elapsed / duration);
+                const eased = easeOutCubic(t);
+                const rotation = start + delta * eased;
+                wheel.style.transform = `rotate(${rotation}deg)`;
+
+                const boundary = Math.floor(rotation / SEGMENT_ANGLE);
+                if (boundary > lastBoundary) {
+                    bouncePin();
+                    lastBoundary = boundary;
+                }
+
+                if (t < 1) {
+                    requestAnimationFrame(frame);
                 } else {
-                    const randomPresenter = presenters[Math.floor(Math.random() * presenters.length)];
-                    resultDiv.innerHTML = `
-                        <p><span class="title">今日の発表担当者は</span><br><span class="roulette-item">${randomPresenter}</span></p>
-                        <p><span class="title">今日のテーマは</span><br><span class="roulette-item">${randomTheme}</span></p>
-                    `;
+                    currentRotation = target;
+                    onComplete(getIndexUnderPin(target));
                 }
-                
-                rouletteCount += intervalSpeed;
-                if (rouletteCount >= maxRouletteTime) {
-                    clearInterval(rouletteInterval);
-                    revealResult(isThemeOnly);
-                }
-            }, intervalSpeed);
-        }
-
-        function revealResult(isThemeOnly) {
-            let finalPresenter;
-            if (isThemeOnly) {
-                finalPresenter = currentPresenter;
-            } else {
-                finalPresenter = presenters[Math.floor(Math.random() * presenters.length)];
-                currentPresenter = finalPresenter;
             }
-            
-            const finalTheme = themes[Math.floor(Math.random() * themes.length)];
 
-            resultDiv.style.opacity = '0';
-            setTimeout(() => {
-                resultDiv.innerHTML = `
-                    <p><span class="title">今日の発表担当者は</span><span class="highlight">${finalPresenter}</span></p>
-                    <p><span class="title">今日のテーマは</span><span class="highlight">${finalTheme}</span></p>
-                `;
-                resultDiv.style.opacity = '1';
-                enableAllButtons();
-                updateButtonVisibility(true); // 抽選後はテーマ抽選ボタンを表示＆「抽選する」を「全員再抽選する」に変更
-
-                createConfetti(50);
-            }, 300);
+            requestAnimationFrame(frame);
         }
 
-        function createConfetti(num) {
-            const colors = ['#47c736', '#2da5e1', '#ec5e5c', '#febf34', '#195474'];
+        function hideWheel(callback) {
+            wheelFloat.classList.add('hidden');
+            setTimeout(() => callback?.(), 500);
+        }
+
+        function showResult() {
+            resultArea.style.display = 'flex';
+            resultName.textContent = currentPresenter;
+            resultTheme.textContent = currentTheme;
+            announceResult();
+            requestAnimationFrame(() => resultArea.classList.add('visible'));
+            createConfetti(64);
+        }
+
+        function announceResult() {
+            resultStatus.textContent = `本日の発表担当者は${currentPresenter}さん、テーマは「${currentTheme}」です。`;
+        }
+
+        function swapResultText(updatePresenter, updateTheme) {
+            resultText.classList.add('swapping');
+            setTimeout(() => {
+                if (updatePresenter) currentPresenter = presenters[pickIndex(presenters)];
+                if (updateTheme) currentTheme = themes[pickIndex(themes)];
+                resultName.textContent = currentPresenter;
+                resultTheme.textContent = currentTheme;
+                announceResult();
+                resultText.classList.remove('swapping');
+                createConfetti(48);
+                setBusy(false);
+            }, 220);
+        }
+
+        function startInitialDraw() {
+            if (isBusy) return;
+            setBusy(true);
+
+            intro.classList.add('hidden');
+            setTimeout(() => intro.classList.add('collapsed'), 420);
+
+            // ページ下端で待機していた同じホイールを、そのまま画面中央へ移動させてから回す
+            // （別要素への切り替え・クロスフェードは行わない）
+            wheelFloat.classList.add('center');
+
+            setTimeout(() => {
+                spinWheel((winnerIndex) => {
+                    currentPresenter = presenters[winnerIndex];
+                    currentTheme = themes[pickIndex(themes)];
+
+                    const landedLabel = wheel.querySelector(`.wheel-label[data-index="${winnerIndex}"]`);
+                    landedLabel?.classList.add('landed');
+
+                    setTimeout(() => {
+                        hideWheel(() => {
+                            showResult();
+                            setBusy(false);
+                        });
+                    }, 1000);
+                });
+            }, 750);
+        }
+
+        // 仕様: 再抽選時はルーレット演出をせず、結果表示からやり直す
+        function redrawAll() {
+            if (isBusy) return;
+            setBusy(true);
+            swapResultText(true, true);
+        }
+
+        function redrawThemeOnly() {
+            if (isBusy) return;
+            setBusy(true);
+            swapResultText(false, true);
+        }
+
+        function createConfetti(count) {
+            const colors = ['#4c8cff', '#ff8a00', '#47c736', '#ec5e5c', '#9c27b0', '#09122b'];
             confettiContainer.innerHTML = '';
 
-            for (let i = 0; i < num; i++) {
+            for (let i = 0; i < count; i++) {
                 const confetti = document.createElement('div');
                 confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.top = -Math.random() * 20 + 'vh';
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 24 + Math.random() * 46;
+                confetti.style.setProperty('--tx', `${Math.cos(angle) * distance}vmin`);
+                confetti.style.setProperty('--ty', `${Math.sin(angle) * distance}vmin`);
+                confetti.style.setProperty('--rot', `${(Math.random() - 0.5) * 720}deg`);
+                confetti.style.setProperty('--scale', `${0.7 + Math.random() * 1.0}`);
                 confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animationDelay = Math.random() * 0.5 + 's';
-                confetti.style.animationDuration = (3 + Math.random() * 2) + 's';
-                confetti.style.transform = `scale(${0.5 + Math.random() * 0.5})`;
+                confetti.style.animationDelay = `${Math.random() * 0.18}s`;
+                confetti.style.animationDuration = `${0.9 + Math.random() * 0.7}s`;
                 confettiContainer.appendChild(confetti);
-
-                confetti.addEventListener('animationend', () => {
-                    confetti.remove();
-                });
+                confetti.addEventListener('animationend', () => confetti.remove());
             }
         }
 
-        // 初期表示時にボタンの状態を設定
+        spinButton.addEventListener('click', startInitialDraw);
+        redrawButton.addEventListener('click', redrawAll);
+        themeOnlyButton.addEventListener('click', redrawThemeOnly);
+
         document.addEventListener('DOMContentLoaded', () => {
-            updateButtonVisibility(false); // テーマ抽選ボタンは非表示、メインボタンは「抽選する」
+            buildWheel();
+            document.body.setAttribute('aria-busy', 'false');
+            spinButton.focus();
         });
     </script>
 </body>
