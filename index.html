@@ -596,10 +596,17 @@
             }
         }
 
+        // ホイールの開始角度を毎回ランダムにし、同じ位置からの回転に見えないようにする
+        function randomizeWheelStart() {
+            currentRotation = Math.random() * 360;
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+        }
+
         function startInitialDraw() {
             if (isBusy) return;
             setBusy(true);
 
+            // イントロ表示中に決めたランダムな角度からそのままスピンを始める
             intro.classList.add('hidden');
             setTimeout(() => intro.classList.add('collapsed'), 420);
 
@@ -633,6 +640,7 @@
 
             setTimeout(() => {
                 resultArea.style.display = 'none';
+                randomizeWheelStart();
                 wheelFloat.classList.remove('hidden');
 
                 setTimeout(() => {
@@ -688,6 +696,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             buildWheel();
+            // イントロの待機中からホイールをランダムな角度にしておき、
+            // 最初のスピンもそこから（位置が飛ばずに）始まるようにする
+            randomizeWheelStart();
             document.body.setAttribute('aria-busy', 'false');
             spinButton.focus();
         });
