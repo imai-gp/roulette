@@ -332,10 +332,22 @@
             left: 50%;
             width: 22px;
             height: 22px;
-            border-radius: 50%;
             opacity: 0;
             filter: drop-shadow(0 0 8px rgba(9, 18, 43, 0.25));
             animation: confetti-burst cubic-bezier(.18, .7, .3, 1) forwards;
+        }
+
+        .confetti--circle {
+            border-radius: 50%;
+        }
+
+        .confetti--square {
+            border-radius: 4px;
+        }
+
+        .confetti--triangle {
+            /* 22px四方を前提に、各頂点をごく僅かに丸めた三角形パス（イントロのシェイプと共通の見た目） */
+            clip-path: path('M11.89 1.79 Q11 0 10.11 1.79 L0.89 20.21 Q0 22 2 22 L20 22 Q22 22 21.11 20.21 Z');
         }
 
         @keyframes confetti-burst {
@@ -619,11 +631,13 @@
 
         function createConfetti(count) {
             const colors = ['#4c8cff', '#ff8a00', '#47c736', '#ec5e5c', '#9c27b0', '#09122b'];
+            const shapeTypes = ['circle', 'triangle', 'square'];
             confettiContainer.innerHTML = '';
 
             for (let i = 0; i < count; i++) {
                 const confetti = document.createElement('div');
-                confetti.className = 'confetti';
+                const shapeType = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+                confetti.className = `confetti confetti--${shapeType}`;
                 const angle = Math.random() * Math.PI * 2;
                 const distance = 24 + Math.random() * 46;
                 confetti.style.setProperty('--tx', `${Math.cos(angle) * distance}vmin`);
