@@ -587,6 +587,15 @@
             }, 220);
         }
 
+        function markLanded(index) {
+            wheel.querySelectorAll('.wheel-label.landed').forEach((el) => el.classList.remove('landed'));
+            const label = wheel.querySelector(`.wheel-label[data-index="${index}"]`);
+            if (label) {
+                void label.offsetWidth;
+                label.classList.add('landed');
+            }
+        }
+
         function startInitialDraw() {
             if (isBusy) return;
             setBusy(true);
@@ -603,8 +612,7 @@
                     currentPresenter = presenters[winnerIndex];
                     currentTheme = themes[pickIndex(themes)];
 
-                    const landedLabel = wheel.querySelector(`.wheel-label[data-index="${winnerIndex}"]`);
-                    landedLabel?.classList.add('landed');
+                    markLanded(winnerIndex);
 
                     setTimeout(() => {
                         hideWheel(() => {
@@ -616,11 +624,33 @@
             }, 750);
         }
 
-        // 仕様: 再抽選時はルーレット演出をせず、結果表示からやり直す
+        // 再抽選: 結果を一旦隠し、ホイールを再表示してルーレット演出をしてから結果を出す
         function redrawAll() {
             if (isBusy) return;
             setBusy(true);
-            swapResultText(true, true);
+
+            resultArea.classList.remove('visible');
+
+            setTimeout(() => {
+                resultArea.style.display = 'none';
+                wheelFloat.classList.remove('hidden');
+
+                setTimeout(() => {
+                    spinWheel((winnerIndex) => {
+                        currentPresenter = presenters[winnerIndex];
+                        currentTheme = themes[pickIndex(themes)];
+
+                        markLanded(winnerIndex);
+
+                        setTimeout(() => {
+                            hideWheel(() => {
+                                showResult();
+                                setBusy(false);
+                            });
+                        }, 1000);
+                    });
+                }, 350);
+            }, 480);
         }
 
         function redrawThemeOnly() {
